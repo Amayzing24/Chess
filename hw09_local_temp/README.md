@@ -1,4 +1,4 @@
-## Chess Board Game
+# Chess Board Game
 
 This chess game was initially created for a project in CIS 120 and then improved. It includes the following features:
 - Fully functional chess including checkmates, en passants, castling, and promotions
@@ -6,4 +6,6 @@ This chess game was initially created for a project in CIS 120 and then improved
 - Undoing moves
 - A button to have the AI make a move (more about the AI below)
 
-# Chess AI
+## Chess AI
+
+The game utilizes a minimax AI with alpha-beta pruning to reduce computation time. The evaluation function is from https://www.chessprogramming.org/Simplified_Evaluation_Function - it takes into account the material value of a piece and its position on the board.
