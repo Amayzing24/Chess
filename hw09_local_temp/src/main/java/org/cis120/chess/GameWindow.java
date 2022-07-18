@@ -10,10 +10,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
@@ -27,12 +24,15 @@ import javax.swing.*;
 public class GameWindow extends JPanel {
 
     private ChessBoard board; // model for the game
+    private ChessAI ai;
     private Position posSelected;
     private JLabel msgBoard;
+    private JLabel turnCounter;
     private Map<Position, Move> possMoves;
     boolean gameOver;
     BufferedWriter bw;
     BufferedReader br;
+    private LinkedList<String> messages;
 
     private final Color color1 = new Color(120, 44, 171);
     private final Color color2 = new Color(176, 139, 201);
@@ -62,7 +62,7 @@ public class GameWindow extends JPanel {
     /**
      * Initializes the game board.
      */
-    public GameWindow(JLabel msgBoard) throws IOException {
+    public GameWindow(JLabel msgBoard, JLabel turnCounter) throws IOException {
         // creates border around the court area, JComponent method
         setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
@@ -75,7 +75,13 @@ public class GameWindow extends JPanel {
         possMoves = new HashMap<>();
         this.msgBoard = msgBoard;
         this.msgBoard.setText("Game started. White turn.");
+        this.turnCounter = turnCounter;
+        this.turnCounter.setText("Turn 1");
         gameOver = false;
+
+        messages = new LinkedList<>();
+
+        ai = new ChessAI(board);
 
         // Create a file reader to read in previous game state
         try {
@@ -109,18 +115,8 @@ public class GameWindow extends JPanel {
                         m.makeCastle();
                     }
                     int resp = board.makeMove(m);
-                    String message = m.toString() + ". ";
-                    if (resp == 1) {
-                        message += "Check. " + board.getTurnColor() + "'s turn.";
-                    } else if (resp == 2) {
-                        message += "Checkmate. " + board.getTurnColor() + " wins!";
-                        gameOver = true;
-                    } else if (resp == 3) {
-                        message += "Stalemate. Who doesn't like a draw?";
-                    } else {
-                        message += board.getTurnColor() + "'s turn.";
-                    }
-                    updateMessage(message);
+
+                    updateMessage(m, resp);
                 } catch (NoSuchElementException e) {
                     reset();
                     break;
@@ -159,7 +155,7 @@ public class GameWindow extends JPanel {
                 } else if (!gameOver) {
                     if (possMoves.containsKey(pos)) {
                         Move m = possMoves.get(pos);
-                        String message = m.toString() + ". ";
+
                         try {
                             if (bw != null) {
                                 bw.write(m.toFileString());
@@ -170,18 +166,8 @@ public class GameWindow extends JPanel {
                             bw = null;
                         }
 
-                        int resp = board.makeMove(possMoves.get(pos));
-                        if (resp == 1) {
-                            message += "Check. " + board.getTurnColor() + "'s turn.";
-                        } else if (resp == 2) {
-                            message += "Checkmate. " + board.getTurnColor() + " wins!";
-                            gameOver = true;
-                        } else if (resp == 3) {
-                            message += "Stalemate. Who doesn't like a draw?";
-                        } else {
-                            message += board.getTurnColor() + "'s turn.";
-                        }
-                        updateMessage(message);
+                        int resp = board.makeMove(m);
+                        updateMessage(m, resp);
                     }
                     posSelected = null;
                     possMoves = new HashMap<>();
@@ -201,7 +187,9 @@ public class GameWindow extends JPanel {
         posSelected = null;
         possMoves = new HashMap<>();
         msgBoard.setText("Game started. White turn.");
+        turnCounter.setText("Turn 1");
         gameOver = false;
+        ai = new ChessAI(board);
         try {
             bw = new BufferedWriter(new FileWriter("files/gamestate.txt", false));
         } catch (FileNotFoundException e) {
@@ -211,8 +199,86 @@ public class GameWindow extends JPanel {
         repaint();
     }
 
-    public void updateMessage(String msg) {
-        msgBoard.setText(msg);
+    public void aiMove() {
+        Move m = ai.getBestMove();
+
+        if (m == null) {
+            throw new IllegalStateException();
+        }
+
+        try {
+            if (bw != null) {
+                bw.write(m.toFileString());
+                bw.newLine();
+                bw.flush();
+            }
+        } catch (IOException ex) {
+            bw = null;
+        }
+
+        int resp = board.makeMove(m);
+        updateMessage(m, resp);
+
+        repaint();
+    }
+
+    public void undoLastMove() {
+        board.undoLastMove();
+        Move m = board.getLastMove();
+        if (m == null) {
+            msgBoard.setText("Game started. White turn.");
+            try {
+                bw = new BufferedWriter(new FileWriter("files/gamestate.txt", false));
+            } catch (IOException e) {
+                bw = null;
+            }
+        } else {
+            try {
+                LinkedList<String> pastLines = new LinkedList<>();
+                br = new BufferedReader(new FileReader("files/gamestate.txt"));
+                while (br != null) {
+                    String line;
+                    line = br.readLine();
+                    if (line == null) {
+                        break;
+                    }
+                    pastLines.addLast(line);
+                }
+                pastLines.removeLast();
+                bw = new BufferedWriter(new FileWriter("files/gamestate.txt", false));
+                for (String line : pastLines) {
+                    bw.write(line);
+                    bw.newLine();
+                    bw.flush();
+                }
+            } catch (IOException e) {
+                bw = null;
+            }
+            messages.removeLast();
+            msgBoard.setText(messages.getLast());
+        }
+        turnCounter.setText("Turn " + board.getTurnNumber());
+
+        repaint();
+    }
+
+    public void updateMessage(Move m, int resp) {
+        String message = m.toString() + ". ";
+
+        if (resp == 1) {
+            message += "Check. " + board.getTurnColor() + "'s turn.";
+        } else if (resp == 2) {
+            message += "Checkmate. " + board.getTurnColor() + " wins!";
+            gameOver = true;
+        } else if (resp == 3) {
+            message += "Stalemate. Who doesn't like a draw?";
+        } else {
+            message += board.getTurnColor() + "'s turn.";
+        }
+
+        msgBoard.setText(message);
+        turnCounter.setText("Turn " + board.getTurnNumber());
+        messages.addLast(message);
     }
 
     /**

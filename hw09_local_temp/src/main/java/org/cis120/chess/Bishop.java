@@ -3,6 +3,19 @@ package org.cis120.chess;
 import java.util.*;
 
 public class Bishop extends Piece {
+
+    private final int[][] positionValue = new int[][]{
+            {-20,-10,-10,-10,-10,-10,-10,-20},
+            {-10,  0,  0,  0,  0,  0,  0,-10},
+            {-10,  0,  5, 10, 10,  5,  0,-10},
+            {-10,  5,  5, 10, 10,  5,  5,-10},
+            {-10,  0, 10, 10, 10, 10,  0,-10},
+            {-10, 10, 10, 10, 10, 10, 10,-10},
+            {-10,  5,  0,  0,  0,  0,  5,-10},
+            {-20,-10,-10,-10,-10,-10,-10,-20}
+    };
+
+    private final int materialValue = 330;
     public Bishop(Position pos, int side) {
         super(pos, side);
     }
@@ -46,8 +59,7 @@ public class Bishop extends Piece {
             Position p = iter.next();
             if (check && !cSet.contains(p)) {
                 iter.remove();
-            }
-            if (blocker && !bSet.contains(p)) {
+            } else if (blocker && !bSet.contains(p)) {
                 iter.remove();
             }
         }
@@ -159,5 +171,15 @@ public class Bishop extends Piece {
     @Override
     public String toString() {
         return getColor() + " " + "bishop";
+    }
+
+    @Override
+    public double getPoints() {
+        if (getSide() == 1) {
+            return materialValue * getSide() + positionValue[getPos().getRow()][getPos().getCol()];
+        } else {
+            return materialValue * getSide() + positionValue[7 - getPos().getRow()][getPos().getCol()];
+        }
+
     }
 }

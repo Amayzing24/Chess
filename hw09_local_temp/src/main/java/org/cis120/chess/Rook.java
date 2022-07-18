@@ -3,6 +3,19 @@ package org.cis120.chess;
 import java.util.*;
 
 public class Rook extends Piece {
+
+    private final int[][] positionValue = new int[][]{
+            {0,  0,  0,  0,  0,  0,  0,  0},
+            {5, 10, 10, 10, 10, 10, 10,  5},
+            {-5,  0,  0,  0,  0,  0,  0, -5},
+            {-5,  0,  0,  0,  0,  0,  0, -5},
+            {-5,  0,  0,  0,  0,  0,  0, -5},
+            {-5,  0,  0,  0,  0,  0,  0, -5},
+            {-5,  0,  0,  0,  0,  0,  0, -5},
+            {0,  0,  0,  5,  5,  0,  0,  0}
+    };
+
+    private final int materialValue = 500;
     public Rook(Position pos, int side) {
         super(pos, side);
     }
@@ -66,8 +79,7 @@ public class Rook extends Piece {
             Position p = iter.next();
             if (check && !cSet.contains(p)) {
                 iter.remove();
-            }
-            if (blocker && !bSet.contains(p)) {
+            } else if (blocker && !bSet.contains(p)) {
                 iter.remove();
             }
         }
@@ -199,5 +211,15 @@ public class Rook extends Piece {
     @Override
     public String toString() {
         return getColor() + " " + "rook";
+    }
+
+    @Override
+    public double getPoints() {
+        if (getSide() == 1) {
+            return materialValue * getSide() + positionValue[getPos().getRow()][getPos().getCol()];
+        } else {
+            return materialValue * getSide() + positionValue[7 - getPos().getRow()][getPos().getCol()];
+        }
+
     }
 }

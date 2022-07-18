@@ -1,6 +1,7 @@
 package org.cis120.chess;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -18,14 +19,16 @@ public class RunChess implements Runnable {
         final JPanel status_panel = new JPanel();
         frame.add(status_panel, BorderLayout.WEST);
         final JLabel status = new JLabel();
-        status.setFont(new Font(status.getFont().getName(), Font.PLAIN, 16));
+        status.setFont(new Font(status.getFont().getName(), Font.PLAIN, 14));
         status_panel.add(status);
+        final JLabel turnCounter = new JLabel();
+        turnCounter.setFont(new Font(status.getFont().getName(), Font.PLAIN, 16));
 
         // Game board
         final GameWindow board;
         GameWindow board1;
         try {
-            board1 = new GameWindow(status);
+            board1 = new GameWindow(status, turnCounter);
         } catch (IOException e) {
             board1 = null;
         }
@@ -43,59 +46,33 @@ public class RunChess implements Runnable {
                 }
             }
         });
-        final Button instructions_button = new Button("Instructions");
-        instructions_button.addMouseListener(new MouseAdapter() {
+        final Button ai_move_button = new Button("AI Move");
+        ai_move_button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                final JFrame rules_frame = new JFrame("Game Rules");
-                rules_frame.setSize(200, 200);
-                String ruleString = "<html> Welcome to chess! This is a turn based game " +
-                        "with two players. Each "
-                        +
-                        "player has to move exactly one piece per turn. Each piece has " +
-                        "differing movement capabilities."
-                        +
-                        " Pieces can eliminate pieces from the other side by going onto " +
-                        "their position. A check "
-                        +
-                        "happens "
-                        +
-                        "when a piece moves into a position such that it can eliminate the " +
-                        "king. The objective of the "
-                        +
-                        "game is to get the opponent into checkmate, a position such that " +
-                        "they cannot move any "
-                        +
-                        "pieces " +
-                        "to "
-                        +
-                        "avoid losing their king. If it is your turn, to select a piece, click " +
-                        "one of the pieces on "
-                        +
-                        "your " +
-                        "side. Green squares will indicate where that piece can move. To make " +
-                        "a move, click on one "
-                        +
-                        "of " +
-                        "the green squares. To switch to a different piece, click on any point" +
-                        " that is not a green "
-                        +
-                        "square. You can also exit the game and resume the same game after " +
-                        "reopening. There is also a reset button. " +
-                        "Enjoy! <html>";
-                ruleString = String.format("<html><div WIDTH=%d>%s</div></html>", 500, ruleString);
-                final JLabel rules = new JLabel(ruleString);
-                rules_frame.add(rules, BorderLayout.CENTER);
-                rules_frame.pack();
-                rules_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                rules_frame.setVisible(true);
+                ai_move_button.setEnabled(false);
+                try {
+                    board.aiMove();
+                } catch (IllegalStateException exception) {
+                    System.out.println("Error while finding AI move: " + exception);
+                }
+                ai_move_button.setEnabled(true);
+            }
+        });
+        final Button undo_button = new Button("Undo");
+        undo_button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                board.undoLastMove();
             }
         });
 
         final JPanel button_panel = new JPanel();
 
+        button_panel.add(turnCounter);
         button_panel.add(reset_button);
-        button_panel.add(instructions_button);
+        button_panel.add(ai_move_button);
+        button_panel.add(undo_button);
 
         frame.add(button_panel, BorderLayout.EAST);
 

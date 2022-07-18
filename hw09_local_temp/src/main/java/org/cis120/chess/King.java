@@ -3,6 +3,20 @@ package org.cis120.chess;
 import java.util.*;
 
 public class King extends Piece {
+
+    private final int[][] positionValue = new int[][]{
+            {-30,-40,-40,-50,-50,-40,-40,-30},
+            {-30,-40,-40,-50,-50,-40,-40,-30},
+            {-30,-40,-40,-50,-50,-40,-40,-30},
+            {-30,-40,-40,-50,-50,-40,-40,-30},
+            {-20,-30,-30,-40,-40,-30,-30,-20},
+            {-10,-20,-20,-20,-20,-20,-20,-10},
+            {20, 20,  0,  0,  0,  0, 20, 20},
+            {20, 30, 10,  0,  0, 10, 30, 20}
+    };
+
+    private final int materialValue = 20000;
+
     private boolean inCheck;
 
     public King(Position pos, int side) {
@@ -123,5 +137,14 @@ public class King extends Piece {
 
     public void notInCheck() {
         inCheck = false;
+    }
+
+    @Override
+    public double getPoints() {
+        if (getSide() == 1) {
+            return materialValue * getSide() + positionValue[getPos().getRow()][getPos().getCol()];
+        } else {
+            return materialValue * getSide() + positionValue[7 - getPos().getRow()][getPos().getCol()];
+        }
     }
 }

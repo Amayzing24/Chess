@@ -5,10 +5,12 @@ import java.util.NoSuchElementException;
 public class Move {
     private Piece piece;
     private Position pos;
+    private Position origPos;
     private ChessBoard board;
     private Piece elim;
     private Piece promo;
     private boolean isCastle;
+    private double points;
 
     public Move(Piece piece, Position pos, ChessBoard board) {
         this.piece = piece;
@@ -18,6 +20,8 @@ public class Move {
         promo = null;
         updatePromotion(5);
         isCastle = false;
+        origPos = piece.getPos();
+        points = 0;
     }
 
     public Move(Piece piece, Position pos, ChessBoard board, Piece elim) {
@@ -28,6 +32,7 @@ public class Move {
         promo = null;
         updatePromotion(5);
         isCastle = false;
+        origPos = piece.getPos();
     }
 
     public Piece getPiece() {
@@ -36,6 +41,10 @@ public class Move {
 
     public Position getNewPos() {
         return pos;
+    }
+
+    public Position getOrigPos() {
+        return origPos;
     }
 
     public ChessBoard getBoard() {
@@ -126,5 +135,13 @@ public class Move {
         }
 
         return out;
+    }
+
+    public void setPoints(double points) {
+        this.points = points;
+    }
+
+    public double getPoints() {
+        return points;
     }
 }

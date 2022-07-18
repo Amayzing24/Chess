@@ -5,6 +5,19 @@ import java.util.*;
 public class Pawn extends Piece {
     private boolean hasMovedTwo;
 
+    private final int[][] positionValue = {
+            {0,  0,  0,  0,  0,  0,  0,  0},
+            {50, 50, 50, 50, 50, 50, 50, 50},
+            {10, 10, 20, 30, 30, 20, 10, 10},
+            {5,  5, 10, 25, 25, 10,  5,  5},
+            {0,  0,  0, 20, 20,  0,  0,  0},
+            {5, -5,-10,  0,  0,-10, -5,  5},
+            {5, 10, 10,-20,-20, 10, 10,  5},
+            {0,  0,  0,  0,  0,  0,  0,  0}
+    };
+
+    private final int materialValue = 100;
+
     public Pawn(Position pos, int side) {
         super(pos, side);
         hasMovedTwo = false;
@@ -62,8 +75,7 @@ public class Pawn extends Piece {
             Position p = iter.next();
             if (check && !cSet.contains(p)) {
                 iter.remove();
-            }
-            if (blocker && !bSet.contains(p)) {
+            } else if (blocker && !bSet.contains(p)) {
                 iter.remove();
             }
         }
@@ -110,11 +122,21 @@ public class Pawn extends Piece {
     }
 
     @Override
-    public void move(Position newPos) {
+    public void move(Position newPos, int turn) {
         if (Math.abs(getPos().getRow() - newPos.getRow()) == 2) {
             hasMovedTwo = true;
         }
-        super.move(newPos);
+        super.move(newPos, turn);
+    }
+
+    @Override
+    public void undoMove(Position oldPosition, int turn) {
+        if (getSide() == 1 && oldPosition.getRow() == 6) {
+            hasMovedTwo = false;
+        } else if (getSide() == -1 && oldPosition.getRow() == 1) {
+            hasMovedTwo = false;
+        }
+        super.undoMove(oldPosition, turn);
     }
 
     @Override
@@ -128,5 +150,15 @@ public class Pawn extends Piece {
 
     public boolean hasMovedTwo() {
         return hasMovedTwo;
+    }
+
+    @Override
+    public double getPoints() {
+        if (getSide() == 1) {
+            return materialValue * getSide() + positionValue[getPos().getRow()][getPos().getCol()];
+        } else {
+            return materialValue * getSide() + positionValue[7 - getPos().getRow()][getPos().getCol()];
+        }
+
     }
 }

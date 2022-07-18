@@ -15,6 +15,8 @@ public class ChessBoard {
     private int turnSide;
     private King whiteKing;
     private King blackKing;
+    private int turnNumber;
+    private LinkedList<Move> moves;
 
     /**
      * Creates a new ChessBoard object, putting pieces at a regular chess game's
@@ -27,6 +29,7 @@ public class ChessBoard {
         blockerMap = new HashMap<>();
         blockPositions = new HashSet<>();
         checkers = new LinkedList<>();
+        moves = new LinkedList<>();
 
         blackKing = new King(new Position(0, 4), -1);
         board[0][4] = blackKing;
@@ -60,6 +63,7 @@ public class ChessBoard {
 
         updateCheckStatus(1);
         turnSide = 1;
+        turnNumber = 1;
     }
 
     public Piece getPiece(Position p) {
@@ -81,6 +85,8 @@ public class ChessBoard {
      *         stalemate, 0 otherwise
      */
     public int makeMove(Move m) {
+        moves.addLast(m);
+
         // First do housekeeping - update Pawns movedTwo status and reset check booleans
         for (Piece p : whitePieces) {
             if (p.getPieceID() == 1) {
@@ -123,18 +129,18 @@ public class ChessBoard {
                 Piece rook = board[m.getPiece().getPos().getRow()][7];
                 board[m.getPiece().getPos().getRow()][7] = null;
                 board[m.getPiece().getPos().getRow()][5] = rook;
-                rook.move(new Position(m.getPiece().getPos().getRow(), 5));
+                rook.move(new Position(m.getPiece().getPos().getRow(), 5), turnNumber);
             } else {
                 Piece rook = board[m.getPiece().getPos().getRow()][0];
                 board[m.getPiece().getPos().getRow()][0] = null;
                 board[m.getPiece().getPos().getRow()][3] = rook;
-                rook.move(new Position(m.getPiece().getPos().getRow(), 3));
+                rook.move(new Position(m.getPiece().getPos().getRow(), 3), turnNumber);
             }
             board[m.getNewPos().getRow()][m.getNewPos().getCol()] = m.getPiece();
-            m.getPiece().move(m.getNewPos());
+            m.getPiece().move(m.getNewPos(), turnNumber);
         } else {
             board[m.getNewPos().getRow()][m.getNewPos().getCol()] = m.getPiece();
-            m.getPiece().move(m.getNewPos());
+            m.getPiece().move(m.getNewPos(), turnNumber);
         }
 
         updateCheckStatus(turnSide);
@@ -150,6 +156,8 @@ public class ChessBoard {
         for (Piece p : currPieces) {
             validMoves.addAll(p.getPossibleMoves(this).keySet());
         }
+
+        turnNumber++;
 
         turnSide = turnSide * -1;
 
@@ -167,6 +175,68 @@ public class ChessBoard {
         }
 
         return code;
+    }
+
+    /**
+     * Assumes the move was the most recently made on the current board state
+     */
+    public void undoLastMove() {
+        if (moves.isEmpty()) {
+            return;
+        }
+
+        Move m = moves.removeLast();
+
+        turnNumber--;
+        turnSide = turnSide * -1;
+
+        whiteKing.notInCheck();
+        blackKing.notInCheck();
+
+        board[m.getOrigPos().getRow()][m.getOrigPos().getCol()] = m.getPiece();
+        board[m.getNewPos().getRow()][m.getNewPos().getCol()] = null;
+        m.getPiece().undoMove(m.getOrigPos(), turnNumber);
+
+        if (m.hasElim()) {
+            Piece elim = m.getElim();
+            board[elim.getPos().getRow()][elim.getPos().getCol()] = elim;
+            if (elim.getSide() == 1) {
+                whitePieces.add(elim);
+            } else {
+                blackPieces.add(elim);
+            }
+        }
+
+        if (m.isPromotion()) {
+            Piece promo = m.getPromotion();
+            board[promo.getPos().getRow()][promo.getPos().getCol()] = null;
+            if (promo.getSide() == 1) {
+                whitePieces.remove(promo);
+            } else {
+                blackPieces.remove(promo);
+            }
+        }
+
+        if (m.isCastle()) {
+            if (m.getNewPos().getCol() == 6) {
+                board[m.getNewPos().getRow()][7] = board[m.getNewPos().getRow()][5];
+                board[m.getNewPos().getRow()][5] = null;
+                board[m.getNewPos().getRow()][7].undoMove(new Position(m.getNewPos().getRow(), 7), turnNumber);
+            } else {
+                board[m.getNewPos().getRow()][0] = board[m.getNewPos().getRow()][3];
+                board[m.getNewPos().getRow()][3] = null;
+                board[m.getNewPos().getRow()][0].undoMove(new Position(m.getNewPos().getRow(), 0), turnNumber);
+            }
+        }
+
+        updateCheckStatus(turnSide);
+    }
+
+    public Move getLastMove() {
+        if (moves.isEmpty()) {
+            return null;
+        }
+        return moves.getLast();
     }
 
     /**
@@ -192,7 +262,7 @@ public class ChessBoard {
      * checking, blocking, etc.
      * @param side
      */
-    private void updateCheckStatus(int side) {
+    public void updateCheckStatus(int side) {
         List<Piece> lst;
         King currKing;
         blockerMap = new HashMap<>();
@@ -281,6 +351,30 @@ public class ChessBoard {
 
     public int getTurnSide() {
         return turnSide;
+    }
+
+    public void setSide(int turnSide) {
+        this.turnSide = turnSide;
+    }
+
+    public int getTurnNumber() {
+        return turnNumber;
+    }
+
+    public List<Piece> getCurrSidePieces() {
+        if (turnSide == 1) {
+            return whitePieces;
+        } else {
+            return blackPieces;
+        }
+    }
+
+    public List<Piece> getOtherSidePieces() {
+        if (turnSide == 1) {
+            return blackPieces;
+        } else {
+            return whitePieces;
+        }
     }
 
     public String getTurnColor() {

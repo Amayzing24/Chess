@@ -3,6 +3,19 @@ package org.cis120.chess;
 import java.util.*;
 
 public class Queen extends Piece {
+
+    private final int[][] positionValue = new int[][]{
+            {-20,-10,-10, -5, -5,-10,-10,-20},
+            {-10,  0,  0,  0,  0,  0,  0,-10},
+            {-10,  0,  5,  5,  5,  5,  0,-10},
+            {-5,  0,  5,  5,  5,  5,  0, -5},
+            {0,  0,  5,  5,  5,  5,  0, -5},
+            {-10,  5,  5,  5,  5,  5,  0,-10},
+            {-10,  0,  5,  0,  0,  0,  0,-10},
+            {-20,-10,-10, -5, -5,-10,-10,-20}
+    };
+
+    private final int materialValue = 900;
     public Queen(Position pos, int side) {
         super(pos, side);
     }
@@ -65,5 +78,14 @@ public class Queen extends Piece {
     @Override
     public String toString() {
         return getColor() + " " + "queen";
+    }
+
+    @Override
+    public double getPoints() {
+        if (getSide() == 1) {
+            return materialValue * getSide() + positionValue[getPos().getRow()][getPos().getCol()];
+        } else {
+            return materialValue * getSide() + positionValue[7 - getPos().getRow()][getPos().getCol()];
+        }
     }
 }

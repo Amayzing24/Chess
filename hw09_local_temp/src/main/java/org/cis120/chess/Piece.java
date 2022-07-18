@@ -1,5 +1,6 @@
 package org.cis120.chess;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +15,8 @@ public abstract class Piece {
     private int side;
     private boolean hasMoved;
 
+    private int moveTurn;
+
     public Piece(Position pos, int side) {
         if (ChessBoard.outOfBounds(pos)) {
             throw new IllegalArgumentException();
@@ -23,6 +26,7 @@ public abstract class Piece {
         this.pos = pos;
         this.side = side;
         hasMoved = false;
+        moveTurn = -1;
     }
 
     /**
@@ -66,6 +70,8 @@ public abstract class Piece {
 
     public abstract int getPieceID();
 
+    public abstract double getPoints();
+
     public Position getPos() {
         return pos;
     }
@@ -90,12 +96,23 @@ public abstract class Piece {
      * Changes the position of the Piece
      * @param newPos the position to move to
      */
-    public void move(Position newPos) {
+    public void move(Position newPos, int turn) {
         if (ChessBoard.outOfBounds(newPos)) {
             throw new IllegalArgumentException();
         }
-        hasMoved = true;
+        if (!hasMoved) {
+            hasMoved = true;
+            moveTurn = turn;
+        }
         pos = newPos;
+    }
+
+    public void undoMove(Position oldPosition, int turn) {
+        pos = oldPosition;
+        if (hasMoved && turn <= moveTurn) {
+            hasMoved = false;
+            moveTurn = turn;
+        }
     }
 
     @Override
