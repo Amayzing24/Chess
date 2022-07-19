@@ -14,6 +14,6 @@ Either open the jar file (`out/artifacts/hw09_local_temp_jar/hw09_local_temp.jar
 
 ## Chess AI
 
-The AI utilizes the minimax algorithm with a search depth of 4 (can be adjusted in `ChessAI.java`). Essentially, it looks ahead upto 4 moves, evaluating each board state at the end of each sequence of moves. It will then propogate certain moves up the decision tree depending on their score. For moves by the current side, it will choose the highest score, and for moves by the opposide side, it will choose the lowest score.
+The AI utilizes the minimax algorithm with a search depth of 4 (can be adjusted in `ChessAI.java`). Essentially, it looks ahead upto 4 moves, evaluating each board state at the end of each sequence of moves. It will then propogate certain moves up the decision tree depending on their score. For moves by the current side, it will choose the highest score, and for moves by the opposide side, it will choose the lowest score. Alpha-beta pruning is used to improve efficiency.
 
 The evaluation function takes into account material value of pieces as well as their positions. It was taken from [Chess Programming Wiki](https://www.chessprogramming.org/Simplified_Evaluation_Function).
