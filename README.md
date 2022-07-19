@@ -10,7 +10,7 @@ This chess game was initially created for a project in CIS 120 and then improved
 
 ## How To Run
 
-Simply run the Game.java file (found in src/main/java/org/cis120/Game.java)
+Either open the jar file (`out/artifacts/hw09_local_temp_jar/hw09_local_temp.jar`) or run the Game.java file (`src/main/java/org/cis120/Game.java`).
 
 ## Chess AI
 
