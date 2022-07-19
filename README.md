@@ -10,8 +10,10 @@ This chess game was initially created for a project in CIS 120 and then improved
 
 ## How To Run
 
-Either open the jar file (`out/artifacts/hw09_local_temp_jar/hw09_local_temp.jar`) or run the Game.java file (`src/main/java/org/cis120/Game.java`).
+Either open the jar file (`out/artifacts/hw09_local_temp_jar/hw09_local_temp.jar`) or run Game.java (`src/main/java/org/cis120/Game.java`).
 
 ## Chess AI
 
-The game utilizes a minimax AI with alpha-beta pruning to reduce computation time. The evaluation function is from https://www.chessprogramming.org/Simplified_Evaluation_Function - it takes into account the material value of a piece and its position on the board.
+The AI utilizes the minimax algorithm with a search depth of 4 (can be adjusted in `ChessAI.java`). Essentially, it looks ahead upto 4 moves, evaluating each board state at the end of each sequence of moves. It will then propogate certain moves up the decision tree depending on their score. For moves by the current side, it will choose the highest score, and for moves by the opposide side, it will choose the lowest score.
+
+The evaluation function takes into account material value of pieces as well as their positions. It was taken from [Chess Programming Wiki](https://www.chessprogramming.org/Simplified_Evaluation_Function).
